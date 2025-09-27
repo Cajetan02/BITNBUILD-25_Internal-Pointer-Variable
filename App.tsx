@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, Database, Target, CreditCard, BarChart3, 
   FileText, Bell, MessageCircle, Newspaper, Moon, Sun, 
-  IndianRupee, User, LogOut, Settings
+  IndianRupee, User, LogOut, Settings as SettingsIcon
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from './components/ui/dropdown-menu';
@@ -275,7 +275,7 @@ export default function App() {
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCurrentPage('settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
+                    <SettingsIcon className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

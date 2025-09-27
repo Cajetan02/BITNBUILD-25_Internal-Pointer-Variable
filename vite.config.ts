@@ -48,7 +48,8 @@ export default defineConfig({
       'framer-motion',
       'lucide-react',
       '@supabase/supabase-js',
-      'recharts'
+      'recharts',
+      'sonner'
     ]
   }
 })
