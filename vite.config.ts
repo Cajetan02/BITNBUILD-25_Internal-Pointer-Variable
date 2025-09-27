@@ -19,22 +19,36 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['lucide-react', 'motion'],
-          charts: ['recharts']
+          ui: ['lucide-react', 'framer-motion'],
+          charts: ['recharts'],
+          supabase: ['@supabase/supabase-js'],
+          radix: ['@radix-ui/react-slot', '@radix-ui/react-dropdown-menu', '@radix-ui/react-avatar']
         }
       }
     }
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
+    open: true
   },
   preview: {
     port: 3000,
     host: true
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'framer-motion',
+      'lucide-react',
+      '@supabase/supabase-js',
+      'recharts'
+    ]
   }
 })

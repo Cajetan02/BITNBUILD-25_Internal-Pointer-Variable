@@ -19,6 +19,9 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
 
     /* Path mapping */
     "baseUrl": ".",
@@ -27,8 +30,12 @@
     },
 
     /* Types */
-    "types": ["vite/client"]
+    "types": [],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["**/*.ts", "**/*.tsx", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

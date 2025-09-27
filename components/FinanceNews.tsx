@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Newspaper, Filter, Bookmark, BookmarkCheck, Share2, 
   Clock, TrendingUp, AlertTriangle, Calendar, 
