@@ -157,7 +157,9 @@ export default function FileUpload({
         status: 'uploading',
         progress: 0,
         file: file,
-        previewUrl: null
+        previewUrl: null,
+        category: category,
+        uploadedAt: new Date().toISOString()
       };
 
       setUploadedFiles(prev => [...prev, newFile]);
@@ -206,7 +208,8 @@ export default function FileUpload({
                 ...f, 
                 status: 'completed', 
                 backendId: response.fileId,
-                extractedData: response.extractedData 
+                extractedData: response.extractedData,
+                url: response.url || newFile.previewUrl
               }
             : f
         ));
@@ -225,7 +228,8 @@ export default function FileUpload({
           onFileUploaded({
             ...newFile,
             backendId: response.fileId,
-            extractedData: response.extractedData
+            extractedData: response.extractedData,
+            url: response.url || newFile.previewUrl
           });
         }
 

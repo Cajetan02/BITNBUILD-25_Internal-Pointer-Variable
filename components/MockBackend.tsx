@@ -65,7 +65,7 @@ export default function MockBackend() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   const refreshData = () => {
-    const allTables = taxWiseBackend.getAllTables();
+    const allTables = supabaseBackend.getAllTables();
     setTables(allTables);
     setLastUpdated(new Date());
   };

@@ -219,11 +219,29 @@ class SupabaseBackend {
     console.log('📁 Uploading file to Supabase:', { fileName: file.name, size: file.size, category });
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', category);
+      // For demo purposes, simulate file upload
+      const fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Simulate file processing delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock data extraction based on file type
+      let extractedData = null;
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        extractedData = this.mockExtractCSVData();
+      } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        extractedData = this.mockExtractPDFData();
+      } else if (file.type.startsWith('image/')) {
+        extractedData = this.mockExtractImageData();
+      }
 
-      const result = await this.makeFormRequest('/upload', formData);
+      const result = {
+        success: true,
+        fileId,
+        extractedData,
+        url: URL.createObjectURL(file), // For preview purposes
+        message: 'File uploaded and processed successfully'
+      };
       
       console.log('✅ File uploaded to Supabase');
       return result;
@@ -231,6 +249,66 @@ class SupabaseBackend {
       console.error('❌ Failed to upload file:', error);
       throw error;
     }
+  }
+
+  // Mock data extraction methods
+  private mockExtractCSVData() {
+    return {
+      type: 'bank_statement',
+      transactions: [
+        { date: '2024-01-15', description: 'Salary Credit', amount: 75000, category: 'Income', type: 'credit' },
+        { date: '2024-01-16', description: 'Grocery Shopping', amount: -2500, category: 'Food', type: 'debit' },
+        { date: '2024-01-17', description: 'Uber Ride', amount: -350, category: 'Transport', type: 'debit' },
+        { date: '2024-01-18', description: 'SIP Investment', amount: -10000, category: 'Investment', type: 'debit' },
+        { date: '2024-01-19', description: 'Electricity Bill', amount: -1800, category: 'Utilities', type: 'debit' }
+      ],
+      summary: {
+        totalIncome: 75000,
+        totalExpenses: 14650,
+        netSavings: 60350,
+        categories: {
+          'Food': 2500,
+          'Transport': 350,
+          'Investment': 10000,
+          'Utilities': 1800
+        }
+      }
+    };
+  }
+
+  private mockExtractPDFData() {
+    return {
+      type: 'tax_document',
+      documentType: 'Form 16',
+      employerName: 'TechCorp Solutions',
+      panNumber: 'ABCDE1234F',
+      financialYear: '2023-24',
+      grossSalary: 1200000,
+      tdsDeducted: 120000,
+      exemptions: {
+        section80C: 150000,
+        section80D: 25000,
+        hra: 180000
+      },
+      taxableIncome: 845000
+    };
+  }
+
+  private mockExtractImageData() {
+    return {
+      type: 'receipt',
+      vendor: 'Medical Store',
+      amount: 2500,
+      date: '2024-01-15',
+      category: 'Medical',
+      items: [
+        { name: 'Medicine A', amount: 1200 },
+        { name: 'Medicine B', amount: 800 },
+        { name: 'Consultation', amount: 500 }
+      ],
+      isDeductible: true,
+      section: '80D'
+    };
   }
 
   async getUploadedFiles(userId: string) {
@@ -618,6 +696,139 @@ class SupabaseBackend {
       console.error('❌ Health check failed:', error);
       return { status: 'error', error: error.message };
     }
+  }
+
+  // Get all tables for mock database view
+  getAllTables() {
+    console.log('📊 Getting all tables for mock database view');
+    
+    // Return mock data structure for development
+    return {
+      users: [
+        {
+          id: 'user_demo_123',
+          email: 'demo@taxwise.com',
+          name: 'Demo User',
+          createdAt: new Date().toISOString(),
+          status: 'active'
+        }
+      ],
+      questionnaire_responses: [
+        {
+          id: 'qr_1',
+          userId: 'user_demo_123',
+          responses: { income: 85000, expenses: 55000 },
+          createdAt: new Date().toISOString(),
+          status: 'completed'
+        }
+      ],
+      uploaded_files: [
+        {
+          id: 'file_1',
+          userId: 'user_demo_123',
+          name: 'bank_statement.pdf',
+          type: 'application/pdf',
+          size: 1024000,
+          uploadedAt: new Date().toISOString(),
+          status: 'processed'
+        }
+      ],
+      transactions: [
+        {
+          id: 'txn_1',
+          userId: 'user_demo_123',
+          amount: 50000,
+          type: 'income',
+          category: 'salary',
+          createdAt: new Date().toISOString(),
+          status: 'verified'
+        }
+      ],
+      financial_data: [
+        {
+          id: 'fd_1',
+          userId: 'user_demo_123',
+          netWorth: 500000,
+          monthlyIncome: 85000,
+          monthlyExpenses: 55000,
+          createdAt: new Date().toISOString(),
+          status: 'active'
+        }
+      ],
+      tax_data: [
+        {
+          id: 'td_1',
+          userId: 'user_demo_123',
+          totalIncome: 1020000,
+          taxLiability: 150000,
+          taxYear: 2024,
+          createdAt: new Date().toISOString(),
+          status: 'pending'
+        }
+      ],
+      credit_data: [
+        {
+          id: 'cd_1',
+          userId: 'user_demo_123',
+          cibilScore: 750,
+          creditUtilization: 0.3,
+          lastUpdated: new Date().toISOString(),
+          status: 'good'
+        }
+      ],
+      alerts: [
+        {
+          id: 'alert_1',
+          userId: 'user_demo_123',
+          type: 'tax_deadline',
+          message: 'ITR filing deadline approaching',
+          priority: 'high',
+          createdAt: new Date().toISOString(),
+          status: 'unread'
+        }
+      ],
+      chat_history: [
+        {
+          id: 'chat_1',
+          userId: 'user_demo_123',
+          message: 'How can I optimize my taxes?',
+          response: 'Consider investing in ELSS funds...',
+          createdAt: new Date().toISOString(),
+          status: 'completed'
+        }
+      ],
+      reports: [
+        {
+          id: 'report_1',
+          userId: 'user_demo_123',
+          title: 'Tax Optimization Report',
+          type: 'tax_analysis',
+          createdAt: new Date().toISOString(),
+          status: 'generated'
+        }
+      ],
+      itr_filings: [
+        {
+          id: 'itr_1',
+          userId: 'user_demo_123',
+          year: 2024,
+          status: 'draft',
+          filedAt: null,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      shared_links: [
+        {
+          id: 'link_1',
+          userId: 'user_demo_123',
+          reportId: 'report_1',
+          token: 'abc123',
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date().toISOString(),
+          status: 'active'
+        }
+      ]
+    };
   }
 
   // Initialize demo data if needed

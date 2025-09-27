@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import supabaseBackend from '../services/supabase-backend';
+import { supabase } from '../utils/supabase/client';
 
 const SettingItem = ({ icon: Icon, title, description, children, action }) => (
   <div className="flex items-center justify-between p-4 border border-border rounded-lg">
@@ -35,8 +36,12 @@ const SettingItem = ({ icon: Icon, title, description, children, action }) => (
   </div>
 );
 
-export default function Settings() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+interface SettingsProps {
+  isDarkMode?: boolean;
+  onThemeChange?: (isDark: boolean) => void;
+}
+
+export default function Settings({ isDarkMode = false, onThemeChange }: SettingsProps) {
   const [settings, setSettings] = useState({
     // Appearance
     theme: 'system',
@@ -72,16 +77,23 @@ export default function Settings() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
-    // Check current theme
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-    setSettings(prev => ({ ...prev, theme: isDark ? 'dark' : 'light' }));
+    // Set theme based on prop
+    setSettings(prev => ({ 
+      ...prev, 
+      theme: isDarkMode ? 'dark' : 'light' 
+    }));
     
     // Load user preferences
     loadUserPreferences();
-  }, []);
+  }, [isDarkMode]);
 
   const loadUserPreferences = async () => {
     try {
@@ -100,17 +112,23 @@ export default function Settings() {
   const handleThemeChange = (theme) => {
     setSettings(prev => ({ ...prev, theme }));
     
+    let newIsDarkMode = isDarkMode;
+    
     if (theme === 'dark') {
-      setIsDarkMode(true);
+      newIsDarkMode = true;
       document.documentElement.classList.add('dark');
     } else if (theme === 'light') {
-      setIsDarkMode(false);
+      newIsDarkMode = false;
       document.documentElement.classList.remove('dark');
     } else {
       // System theme
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(systemDark);
-      document.documentElement.classList.toggle('dark', systemDark);
+      newIsDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', newIsDarkMode);
+    }
+    
+    // Notify parent component about theme change
+    if (onThemeChange) {
+      onThemeChange(newIsDarkMode);
     }
     
     toast.success('Theme updated successfully');
@@ -144,6 +162,56 @@ export default function Settings() {
     toast.success('Data export initiated', {
       description: 'You will receive an email with your data export shortly'
     });
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const user = supabaseBackend.getCurrentUser();
+      if (user) {
+        // Update password using Supabase auth
+        const { error } = await supabase.auth.updateUser({
+          password: passwordData.newPassword
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        toast.success('Password updated successfully', {
+          description: 'Your password has been changed via Supabase Auth'
+        });
+
+        // Reset form
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (error) {
+      console.error('Password update failed:', error);
+      toast.error('Failed to update password', {
+        description: error.message || 'Please try again'
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -509,6 +577,56 @@ export default function Settings() {
                     onCheckedChange={(checked) => handleSettingChange('autoLogout', checked)}
                   />
                 </SettingItem>
+
+                {/* Password Change Section */}
+                <div className="pt-4 border-t border-border">
+                  <h4 className="font-medium mb-4">Change Password</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="current-password">Current Password</Label>
+                      <Input
+                        id="current-password"
+                        type="password"
+                        placeholder="Enter current password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        disabled={passwordLoading}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="new-password">New Password</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="Enter new password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        disabled={passwordLoading}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        disabled={passwordLoading}
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handlePasswordChange} 
+                      disabled={passwordLoading}
+                      className="w-full"
+                    >
+                      {passwordLoading ? 'Updating...' : 'Update Password'}
+                    </Button>
+                  </div>
+                </div>
 
                 <div className="pt-4 border-t border-border">
                   <div className="flex items-center justify-between">

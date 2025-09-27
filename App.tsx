@@ -41,13 +41,21 @@ const navigation = [
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check localStorage first, then system preference
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      return saved === 'dark';
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   // Check for existing session on app load
@@ -124,6 +132,12 @@ export default function App() {
     };
 
     const Component = pageComponents[currentPage] || HomePage;
+    
+    // Pass props to Settings component
+    if (currentPage === 'settings') {
+      return <Settings isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />;
+    }
+    
     return <Component />;
   };
 

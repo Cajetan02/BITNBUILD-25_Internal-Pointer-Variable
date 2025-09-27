@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import supabaseBackend from '../services/supabase-backend';
+import { supabase } from '../utils/supabase/client';
 
 const ProfileInfoCard = ({ title, value, icon: Icon, editable = false, onEdit }) => (
   <Card className="relative overflow-hidden">
@@ -140,6 +141,12 @@ export default function Profile() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [financialData, setFinancialData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -215,6 +222,56 @@ export default function Profile() {
       });
     } catch (error) {
       toast.error('Failed to delete file');
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const user = supabaseBackend.getCurrentUser();
+      if (user) {
+        // Update password using Supabase auth
+        const { error } = await supabase.auth.updateUser({
+          password: passwordData.newPassword
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        toast.success('Password updated successfully', {
+          description: 'Your password has been changed via Supabase Auth'
+        });
+
+        // Reset form
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (error) {
+      console.error('Password update failed:', error);
+      toast.error('Failed to update password', {
+        description: error.message || 'Please try again'
+      });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -558,23 +615,55 @@ export default function Profile() {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="current-password">Current Password</Label>
-                    <Input id="current-password" type="password" placeholder="Enter current password" />
+                    <Input 
+                      id="current-password" 
+                      type="password" 
+                      placeholder="Enter current password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    />
                   </div>
                   
                   <div>
                     <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" placeholder="Enter new password" />
+                    <Input 
+                      id="new-password" 
+                      type="password" 
+                      placeholder="Enter new password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    />
                   </div>
                   
                   <div>
                     <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <Input id="confirm-password" type="password" placeholder="Confirm new password" />
+                    <Input 
+                      id="confirm-password" 
+                      type="password" 
+                      placeholder="Confirm new password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    />
                   </div>
                 </div>
                 
                 <div className="flex gap-3">
-                  <Button>Update Password</Button>
-                  <Button variant="outline">Reset</Button>
+                  <Button 
+                    onClick={handlePasswordChange}
+                    disabled={passwordLoading}
+                  >
+                    {passwordLoading ? 'Updating...' : 'Update Password'}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setPasswordData({
+                      currentPassword: '',
+                      newPassword: '',
+                      confirmPassword: ''
+                    })}
+                  >
+                    Reset
+                  </Button>
                 </div>
               </CardContent>
             </Card>

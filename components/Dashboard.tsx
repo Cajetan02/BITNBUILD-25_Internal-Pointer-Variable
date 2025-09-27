@@ -15,6 +15,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart as RechartsPieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
+import { toast } from 'sonner';
+import FinancialOverviewCharts from './Charts';
 
 const AnimatedKPI = ({ title, value, change, icon: Icon, color, prefix = '₹', suffix = '' }) => {
   const [animatedValue, setAnimatedValue] = useState(0);
@@ -109,6 +111,7 @@ const InsightCard = ({ insight, index }) => {
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('6months');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Mock data
   const kpiData = [
@@ -225,6 +228,96 @@ export default function Dashboard() {
     { month: 'Jun', assets: 980000, liabilities: 295000, netWorth: 685000 },
   ];
 
+  const handleExportData = async (format: 'pdf' | 'csv' | 'excel') => {
+    setIsExporting(true);
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create downloadable data
+      const exportData = {
+        kpiData,
+        monthlyTrend,
+        expenseBreakdown,
+        investmentAllocation,
+        netWorthData,
+        insights,
+        generatedAt: new Date().toISOString(),
+        timeRange
+      };
+
+      if (format === 'csv') {
+        // Convert to CSV
+        const csvContent = convertToCSV(exportData);
+        downloadFile(csvContent, `financial-dashboard-${timeRange}.csv`, 'text/csv');
+      } else if (format === 'excel') {
+        // For Excel, we'll create a CSV that can be opened in Excel
+        const csvContent = convertToCSV(exportData);
+        downloadFile(csvContent, `financial-dashboard-${timeRange}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      } else {
+        // For PDF, we'll create a simple text representation
+        const pdfContent = convertToPDF(exportData);
+        downloadFile(pdfContent, `financial-dashboard-${timeRange}.pdf`, 'application/pdf');
+      }
+
+      toast.success('Data exported successfully', {
+        description: `Financial dashboard data exported as ${format.toUpperCase()}`
+      });
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Export failed', {
+        description: 'Please try again or contact support'
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const convertToCSV = (data: any) => {
+    let csv = 'Metric,Value,Change\n';
+    
+    // Add KPI data
+    data.kpiData.forEach(kpi => {
+      csv += `${kpi.title},${kpi.value},${kpi.change}%\n`;
+    });
+    
+    csv += '\nMonthly Trend\nMonth,Income,Expenses,Savings\n';
+    data.monthlyTrend.forEach(month => {
+      csv += `${month.month},${month.income},${month.expenses},${month.savings}\n`;
+    });
+    
+    return csv;
+  };
+
+  const convertToPDF = (data: any) => {
+    let content = 'Financial Dashboard Report\n';
+    content += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+    
+    content += 'Key Performance Indicators:\n';
+    data.kpiData.forEach(kpi => {
+      content += `• ${kpi.title}: ₹${kpi.value.toLocaleString()} (${kpi.change > 0 ? '+' : ''}${kpi.change}%)\n`;
+    });
+    
+    content += '\nMonthly Financial Trend:\n';
+    data.monthlyTrend.forEach(month => {
+      content += `${month.month}: Income ₹${month.income.toLocaleString()}, Expenses ₹${month.expenses.toLocaleString()}, Savings ₹${month.savings.toLocaleString()}\n`;
+    });
+    
+    return content;
+  };
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -256,13 +349,32 @@ export default function Dashboard() {
               <SelectItem value="1year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleExportData('pdf')}
+            disabled={isExporting}
+          >
             <Download className="w-4 h-4 mr-2" />
-            Export PDF
+            {isExporting ? 'Exporting...' : 'Export PDF'}
           </Button>
-          <Button variant="outline" size="sm">
-            <Share className="w-4 h-4 mr-2" />
-            Share
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleExportData('csv')}
+            disabled={isExporting}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleExportData('excel')}
+            disabled={isExporting}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Excel
           </Button>
           <Button size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -300,61 +412,7 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Income vs Expenses */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Income vs Expenses Trend</CardTitle>
-                <p className="text-sm text-muted-foreground">Monthly financial flow analysis</p>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={monthlyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
-                    <Legend />
-                    <Area type="monotone" dataKey="income" stackId="1" stroke="#2ECC71" fill="#2ECC71" fillOpacity={0.6} name="Income" />
-                    <Area type="monotone" dataKey="expenses" stackId="2" stroke="#E74C3C" fill="#E74C3C" fillOpacity={0.6} name="Expenses" />
-                    <Line type="monotone" dataKey="savings" stroke="#3498DB" strokeWidth={3} name="Savings" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Net Worth Progress */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Net Worth Progress</CardTitle>
-                <p className="text-sm text-muted-foreground">Track your wealth accumulation</p>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={netWorthData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
-                    <Legend />
-                    <Line type="monotone" dataKey="assets" stroke="#2ECC71" strokeWidth={2} name="Assets" />
-                    <Line type="monotone" dataKey="liabilities" stroke="#E74C3C" strokeWidth={2} name="Liabilities" />
-                    <Line type="monotone" dataKey="netWorth" stroke="#3498DB" strokeWidth={3} name="Net Worth" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <FinancialOverviewCharts />
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-6">
@@ -560,7 +618,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {insights.map((insight, index) => (
-                    <InsightCard key={index} insight={insight} index={index} />
+                    <InsightCard insight={insight} index={index} />
                   ))}
                 </div>
               </CardContent>
