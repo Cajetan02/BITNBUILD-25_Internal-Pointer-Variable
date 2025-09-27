@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Newspaper, Filter, Bookmark, BookmarkCheck, Share2, 
+  Newspaper, Filter, Bookmark, BookmarkX, Share2, 
   Clock, TrendingUp, AlertTriangle, Calendar, 
   ChevronRight, Star, Eye, MessageSquare 
 } from 'lucide-react';
@@ -296,7 +296,7 @@ export default function FinanceNews() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <BookmarkCheck className="w-5 h-5 text-purple-600" />
+                <BookmarkX className="w-5 h-5 text-purple-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Saved</p>
                   <p className="text-2xl font-bold">{savedArticles.size}</p>
@@ -351,7 +351,7 @@ export default function FinanceNews() {
                           className="p-1 h-8 w-8"
                         >
                           {article.isBookmarked ? (
-                            <BookmarkCheck className="w-4 h-4 text-blue-600" />
+                            <BookmarkX className="w-4 h-4 text-blue-600" />
                           ) : (
                             <Bookmark className="w-4 h-4" />
                           )}
