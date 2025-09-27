@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-build';
 import { 
   Home, Database, Target, CreditCard, BarChart3, 
   FileText, Bell, MessageCircle, Newspaper, Moon, Sun, 
