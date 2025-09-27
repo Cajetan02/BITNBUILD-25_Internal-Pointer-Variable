@@ -21,7 +21,8 @@
     "@supabase/supabase-js": "^2.38.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^1.14.0"
+    "tailwind-merge": "^1.14.0",
+    "@radix-ui/react-slot": "1.1.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
