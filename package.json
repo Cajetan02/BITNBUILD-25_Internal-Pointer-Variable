@@ -1,19 +1,39 @@
 {
-  "name": "taxwise-ai",
+  "name": "taxwise-finance-platform",
   "version": "1.0.0",
-  "description": "AI-powered personal finance platform for Indian users",
-  "main": "server/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd server && npm run dev",
-    "client": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build:prod": "NODE_ENV=production vite build",
+    "type-check": "tsc --noEmit"
   },
-  "keywords": ["tax", "finance", "ai", "india", "cibil", "dashboard"],
-  "author": "TaxWise Team",
-  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "motion": "^10.16.0",
+    "lucide-react": "^0.263.1",
+    "recharts": "^2.8.0",
+    "react-hook-form": "7.55.0",
+    "sonner": "2.0.3",
+    "@supabase/supabase-js": "^2.38.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^1.14.0"
+  },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.1.0",
+    "vite": "^5.0.0",
+    "tailwindcss": "^4.0.0-alpha.25",
+    "typescript": "^5.2.2",
+    "eslint": "^8.53.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4"
   }
 }
