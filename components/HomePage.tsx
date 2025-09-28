@@ -355,7 +355,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden text-foreground">
       {/* Floating Background Icons */}
       <FloatingIcon delay={0}>
         <DollarSign className="w-16 h-16 text-green-500" />
